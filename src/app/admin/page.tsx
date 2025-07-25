@@ -19,7 +19,7 @@ const amarelo = "#D4B233";
 // MESMOS E-MAILS DO LOGIN
 const adminEmails = [
   "suporte@postos4ilhas.com.br",
-  "diretor@4ilhas.com",
+  "guilherme@postos4ilhas.com.br",
   "admin@4ilhas.com"
 ];
 
