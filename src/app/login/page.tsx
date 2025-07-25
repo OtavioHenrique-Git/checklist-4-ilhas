@@ -11,8 +11,8 @@ const cinzaClaro = "#F3F4F6";
 
 const adminEmails = [
   "suporte@postos4ilhas.com.br",
-  "diretor@4ilhas.com",
-  "admin@4ilhas.com"
+  "compras@postos4ilhas.com.br",
+  "guilherme@postos4ilhas.com.br"
 ];
 
 export default function LoginPage() {
