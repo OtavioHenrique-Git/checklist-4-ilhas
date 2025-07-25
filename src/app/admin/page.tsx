@@ -16,7 +16,7 @@ import {
 const verde = "#173921";
 const amarelo = "#D4B233";
 
-// MESMOS E-MAILS DO LOGIN
+// MESMOS E-MAILS DO LOGIN - sempre em minúsculo!
 const adminEmails = [
   "suporte@postos4ilhas.com.br",
   "guilherme@postos4ilhas.com.br",
@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [userEmail, setUserEmail] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [filtroEmail, setFiltroEmail] = useState(""); // <- NOVO
+  const [filtroEmail, setFiltroEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
   // Novos estados:
@@ -37,7 +37,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      const email = user?.email || "";
+      const email = (user?.email || "").trim().toLowerCase();
+      console.log("Email logado:", email); // Debug!
       setUserEmail(email);
       if (!email) {
         router.replace("/login");
