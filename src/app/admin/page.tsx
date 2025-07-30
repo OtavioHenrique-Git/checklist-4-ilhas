@@ -13,9 +13,21 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-// Import Google Fonts no topo do arquivo _app.tsx ou layout.tsx
-// Exemplo (em _app.tsx): import "@fontsource/poppins/500.css"; // npm install @fontsource/poppins
-// OU use <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+// Perguntas do checklist
+const perguntas = [
+  "Limpeza e organização do Pátio",
+  "Limpeza e Organização dos banheiros",
+  "Organização da frente de Caixa - PDV",
+  "Layout, abastecimento e organização do expositor de cigarros e acessórios",
+  "Abastecimento, exposição e precificação de mercadorias em loja",
+  "Manutenção do Mapa de Cigarros",
+  "Manutenção da contagem 80/20",
+  "Depósito da loja e troca de mercadorias",
+  "Padrão de exposição e mix do balcão de doces e salgados",
+  "Organização, limpeza das mesas da área do café e som ambiente",
+  "Prazos de rotinas administrativas e financeiras",
+  "Apresentação geral da Filial",
+];
 
 const verde = "#173921";
 const amarelo = "#D4B233";
@@ -24,7 +36,15 @@ const adminEmails = [
   "suporte@postos4ilhas.com.br",
   "guilherme@postos4ilhas.com.br",
   "compras@postos4ilhas.com.br",
+  "rosany.4ilhas@gmail.com",
 ];
+
+// FUNÇÃO para definir cor da nota
+function corDaNota(nota: number) {
+  if (nota <= 2) return "#ef4444"; // vermelho
+  if (nota === 3) return "#fbbf24"; // amarelo
+  return "#22c55e"; // verde
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -98,9 +118,9 @@ export default function AdminPage() {
         <img
           src="/logo.jpeg"
           alt="Logo"
-          className="w-28 h-28 mb-3 rounded-2xl shadow-lg object-contain"
+          className="w-32 h-32 mb-2 rounded-2xl shadow-lg object-contain"
           style={{
-            border: "3.5px solid #d4b23322",
+            border: "3.5px solid #d4b23335",
             background: "#fff",
             boxShadow: "0 4px 32px 0 #17392121",
           }}
@@ -111,7 +131,7 @@ export default function AdminPage() {
             color: verde,
             letterSpacing: "-1px",
             fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif",
-            textShadow: "0 2px 8px #D4B23311, 0 0.5px 1px #fff",
+            textShadow: "0 2px 8px #D4B23312, 0 0.5px 1px #fff",
           }}
         >
           Painel do TI/Diretor
@@ -234,16 +254,36 @@ export default function AdminPage() {
               </div>
               <div className="mt-1">
                 <span className="font-bold text-green-900 text-base">Respostas:</span>
-                <div className="flex flex-col gap-2 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                   {r.respostas && r.respostas.map?.((resp: any, i: number) => (
                     <div
                       key={i}
-                      className="bg-white rounded-lg border border-green-50 shadow-sm p-2 flex flex-col w-full"
+                      className="bg-white rounded-lg border border-green-50 shadow-sm p-3 flex flex-col w-full"
                     >
-                      <div className="flex flex-row items-center gap-2">
-                        <span className="font-bold text-green-900">{i + 1}.</span>
-                        <span className="font-medium text-gray-800">
-                          Nota <span style={{ color: verde, fontWeight: 700 }}>{resp.nota}</span>
+                      <span className="font-bold text-green-900 mb-1">{i + 1}. {perguntas[i]}</span>
+                      {/* Destacar NOTA com círculo colorido */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className="inline-flex items-center justify-center rounded-full"
+                          style={{
+                            width: 36,
+                            height: 36,
+                            background: corDaNota(resp.nota),
+                            color: "#fff",
+                            fontWeight: "bold",
+                            fontSize: 20,
+                            boxShadow: "0 2px 8px #17392117",
+                          }}
+                          title={`Nota: ${resp.nota}`}
+                        >
+                          {resp.nota}
+                        </span>
+                        <span className="font-medium text-gray-700 text-sm">
+                          {resp.nota <= 2
+                            ? "Nota baixa"
+                            : resp.nota === 3
+                            ? "Nota regular"
+                            : "Nota boa"}
                         </span>
                       </div>
                       {resp.observacao && resp.observacao.trim() && (
