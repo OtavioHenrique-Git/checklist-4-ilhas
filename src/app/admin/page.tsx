@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -294,6 +294,35 @@ export default function AdminPage() {
                     </div>
                   ))}
                 </div>
+                {/* MÉDIA DAS NOTAS */}
+                {r.respostas && r.respostas.length > 0 && (
+                  <div className="mt-5 flex items-center gap-2">
+                    <span className="font-semibold text-green-900 text-lg" style={{ color: verde }}>
+                      Média:
+                    </span>
+                    <span
+                      className="rounded-full px-4 py-1 font-bold text-lg shadow"
+                      style={{
+                        background: "#fff",
+                        color: "#173921",
+                        border: `2px solid ${corDaNota(
+                          Math.round(
+                            r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
+                            r.respostas.length
+                          )
+                        )}`,
+                        minWidth: 56,
+                        textAlign: "center",
+                      }}
+                      title="Média das notas"
+                    >
+                      {(
+                        r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
+                        r.respostas.length
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ))
