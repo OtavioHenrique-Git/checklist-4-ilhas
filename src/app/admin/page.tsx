@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,6 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-// Perguntas do checklist
 const perguntas = [
   "Limpeza e organização do Pátio",
   "Limpeza e Organização dos banheiros",
@@ -29,6 +28,24 @@ const perguntas = [
   "Apresentação geral da Filial",
 ];
 
+const camposEntregaveis = [
+  "Positivação de clientes",
+  "Nº de frentistas",
+  "Entrada de colaboradores",
+  "Saída de colaboradores",
+  "Contagem Semanal",
+  "Listas de Contagens 80/20",
+  "Mapa de cigarros em dia?",
+  "Pontos assinados para folha de pagamento",
+  "Pontos assinados para rescisão",
+  "Planilha de Controle de Uniformes",
+  "Boletos semanais",
+  "Caixas semanal/ mensal para fechamento da folha",
+  "Planilha de Controle de Validades",
+  "Vendas semanais divulgada no mural",
+  "Reunião Mensal agendada (colocar data)",
+];
+
 const verde = "#173921";
 const amarelo = "#D4B233";
 
@@ -39,11 +56,10 @@ const adminEmails = [
   "rosany.4ilhas@gmail.com",
 ];
 
-// FUNÇÃO para definir cor da nota
 function corDaNota(nota: number) {
-  if (nota <= 2) return "#ef4444"; // vermelho
-  if (nota === 3) return "#fbbf24"; // amarelo
-  return "#22c55e"; // verde
+  if (nota <= 2) return "#ef4444";
+  if (nota === 3) return "#fbbf24";
+  return "#22c55e";
 }
 
 export default function AdminPage() {
@@ -54,7 +70,10 @@ export default function AdminPage() {
   const [filtroEmail, setFiltroEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [resultados, setResultados] = useState<any[]>([]);
+  const [resultadosEntregaveis, setResultadosEntregaveis] = useState<any[]>([]);
   const [buscando, setBuscando] = useState(false);
+  const [buscandoEntregaveis, setBuscandoEntregaveis] = useState(false);
+  const [aba, setAba] = useState<"relatorios" | "entregaveis">("relatorios");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -76,6 +95,7 @@ export default function AdminPage() {
   }
 
   async function buscarRelatorios() {
+    setAba("relatorios");
     setBuscando(true);
     let q: any = collection(db, "checklists");
     let filtros: any[] = [];
@@ -98,6 +118,30 @@ export default function AdminPage() {
     setBuscando(false);
   }
 
+  async function buscarEntregaveis() {
+    setAba("entregaveis");
+    setBuscandoEntregaveis(true);
+    let q: any = collection(db, "entregaveis");
+    let filtros: any[] = [];
+    if (dataInicio) {
+      filtros.push(where("criadoEm", ">=", Timestamp.fromDate(new Date(dataInicio + "T00:00:00"))));
+    }
+    if (dataFim) {
+      filtros.push(where("criadoEm", "<=", Timestamp.fromDate(new Date(dataFim + "T23:59:59"))));
+    }
+    if (filtroEmail.trim() !== "") {
+      filtros.push(where("email", "==", filtroEmail.trim().toLowerCase()));
+    }
+    if (filtros.length > 0) {
+      q = query(q, ...filtros, orderBy("criadoEm", "desc"));
+    } else {
+      q = query(q, orderBy("criadoEm", "desc"));
+    }
+    const snap = await getDocs(q);
+    setResultadosEntregaveis(snap.docs.map(d => d.data()));
+    setBuscandoEntregaveis(false);
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f7fa]">
@@ -113,7 +157,7 @@ export default function AdminPage() {
         fontFamily: "'Poppins', 'Segoe UI', 'Inter', Arial, sans-serif",
       }}
     >
-      {/* Header premium */}
+      {/* Header */}
       <header className="w-full max-w-2xl flex flex-col items-center mb-5">
         <img
           src="/logo.jpeg"
@@ -186,7 +230,7 @@ export default function AdminPage() {
       {/* Botões */}
       <div className="w-full max-w-2xl flex flex-col md:flex-row gap-3 mb-3">
         <button
-          className="flex-1"
+          className={`flex-1 ${aba === "relatorios" ? "ring-2 ring-green-600" : ""}`}
           style={{
             background: verde,
             color: amarelo,
@@ -219,6 +263,24 @@ export default function AdminPage() {
         >
           Preencher Checklist
         </button>
+        <button
+          className={`flex-1 ${aba === "entregaveis" ? "ring-2 ring-yellow-600" : ""}`}
+          style={{
+            background: "#fffbe5",
+            color: verde,
+            fontWeight: "bold",
+            fontSize: "1.13rem",
+            padding: "1rem",
+            borderRadius: "1rem",
+            boxShadow: "0 2.5px 14px #d4b23319",
+            transition: "0.2s",
+            border: "1.8px solid #D4B233",
+          }}
+          onClick={buscarEntregaveis}
+          type="button"
+        >
+          Buscar Entregáveis
+        </button>
       </div>
       <button
         className="text-sm text-gray-400 hover:underline mb-8"
@@ -231,21 +293,116 @@ export default function AdminPage() {
 
       {/* Resultados */}
       <main className="w-full max-w-2xl flex flex-col gap-7">
-        {buscando && (
+        {aba === "relatorios" ? (
+          buscando ? (
+            <div className="text-gray-500 mb-4 text-center">Buscando...</div>
+          ) : resultados.length > 0 ? (
+            resultados.map((r, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl shadow bg-[#f8fff9] border border-green-100 p-4 md:p-6 w-full transition-all"
+                style={{
+                  fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif",
+                  boxShadow: "0 2px 18px #17392115",
+                }}
+              >
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-1">
+                  <span className="font-bold text-lg md:text-xl text-green-900 block mb-1 md:mb-0" style={{ color: verde, wordBreak: "break-all" }}>
+                    {r.email}
+                  </span>
+                  <span className="text-xs text-gray-400 font-semibold text-right">
+                    {r.criadoEm?.toDate?.().toLocaleString?.() || "-"}
+                  </span>
+                </div>
+                <div className="mt-1">
+                  <span className="font-bold text-green-900 text-base">Respostas:</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                    {r.respostas && r.respostas.map?.((resp: any, i: number) => (
+                      <div
+                        key={i}
+                        className="bg-white rounded-lg border border-green-50 shadow-sm p-3 flex flex-col w-full"
+                      >
+                        <span className="font-bold text-green-900 mb-1">{i + 1}. {perguntas[i]}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span
+                            className="inline-flex items-center justify-center rounded-full"
+                            style={{
+                              width: 36,
+                              height: 36,
+                              background: corDaNota(resp.nota),
+                              color: "#fff",
+                              fontWeight: "bold",
+                              fontSize: 20,
+                              boxShadow: "0 2px 8px #17392117",
+                            }}
+                            title={`Nota: ${resp.nota}`}
+                          >
+                            {resp.nota}
+                          </span>
+                          <span className="font-medium text-gray-700 text-sm">
+                            {resp.nota <= 2
+                              ? "Nota baixa"
+                              : resp.nota === 3
+                              ? "Nota regular"
+                              : "Nota boa"}
+                          </span>
+                        </div>
+                        {resp.observacao && resp.observacao.trim() && (
+                          <span className="mt-1 text-gray-700 text-xs">
+                            <span className="font-semibold text-green-900">Obs:</span> {resp.observacao}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {r.respostas && r.respostas.length > 0 && (
+                    <div className="mt-5 flex items-center gap-2">
+                      <span className="font-semibold text-green-900 text-lg" style={{ color: verde }}>
+                        Média:
+                      </span>
+                      <span
+                        className="rounded-full px-4 py-1 font-bold text-lg shadow"
+                        style={{
+                          background: "#fff",
+                          color: "#173921",
+                          border: `2px solid ${corDaNota(
+                            Math.round(
+                              r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
+                                r.respostas.length
+                            )
+                          )}`,
+                          minWidth: 56,
+                          textAlign: "center",
+                        }}
+                        title="Média das notas"
+                      >
+                        {(
+                          r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
+                          r.respostas.length
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-400 text-center">Nenhum checklist encontrado nesse período.</div>
+          )
+        ) : buscandoEntregaveis ? (
           <div className="text-gray-500 mb-4 text-center">Buscando...</div>
-        )}
-        {resultados.length > 0 ? (
-          resultados.map((r, idx) => (
+        ) : resultadosEntregaveis.length > 0 ? (
+          resultadosEntregaveis.map((r, idx) => (
             <div
               key={idx}
-              className="rounded-2xl shadow bg-[#f8fff9] border border-green-100 p-4 md:p-6 w-full transition-all"
+              className="rounded-2xl shadow bg-[#fffbe9] border border-yellow-200 p-4 md:p-6 w-full transition-all"
               style={{
                 fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif",
-                boxShadow: "0 2px 18px #17392115",
+                boxShadow: "0 2px 18px #D4B23322",
               }}
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-1">
-                <span className="font-bold text-lg md:text-xl text-green-900 block mb-1 md:mb-0" style={{ color: verde, wordBreak: "break-all" }}>
+                <span className="font-bold text-lg md:text-xl block mb-1 md:mb-0" style={{ color: amarelo, wordBreak: "break-all" }}>
                   {r.email}
                 </span>
                 <span className="text-xs text-gray-400 font-semibold text-right">
@@ -253,82 +410,26 @@ export default function AdminPage() {
                 </span>
               </div>
               <div className="mt-1">
-                <span className="font-bold text-green-900 text-base">Respostas:</span>
+                <span className="font-bold text-yellow-900 text-base">Entregáveis:</span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-                  {r.respostas && r.respostas.map?.((resp: any, i: number) => (
+                  {camposEntregaveis.map((campo, i) => (
                     <div
                       key={i}
-                      className="bg-white rounded-lg border border-green-50 shadow-sm p-3 flex flex-col w-full"
+                      className="bg-white rounded-lg border border-yellow-100 shadow-sm p-3 flex flex-col w-full"
                     >
-                      <span className="font-bold text-green-900 mb-1">{i + 1}. {perguntas[i]}</span>
-                      {/* Destacar NOTA com círculo colorido */}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span
-                          className="inline-flex items-center justify-center rounded-full"
-                          style={{
-                            width: 36,
-                            height: 36,
-                            background: corDaNota(resp.nota),
-                            color: "#fff",
-                            fontWeight: "bold",
-                            fontSize: 20,
-                            boxShadow: "0 2px 8px #17392117",
-                          }}
-                          title={`Nota: ${resp.nota}`}
-                        >
-                          {resp.nota}
-                        </span>
-                        <span className="font-medium text-gray-700 text-sm">
-                          {resp.nota <= 2
-                            ? "Nota baixa"
-                            : resp.nota === 3
-                            ? "Nota regular"
-                            : "Nota boa"}
-                        </span>
-                      </div>
-                      {resp.observacao && resp.observacao.trim() && (
-                        <span className="mt-1 text-gray-700 text-xs">
-                          <span className="font-semibold text-green-900">Obs:</span> {resp.observacao}
-                        </span>
-                      )}
+                      <span className="font-bold text-yellow-800 mb-1">{campo}</span>
+                      <span className="text-sm text-gray-700">
+                        {String(r.respostas?.[campo] ?? "-")}
+                      </span>
                     </div>
                   ))}
                 </div>
-                {/* MÉDIA DAS NOTAS */}
-                {r.respostas && r.respostas.length > 0 && (
-                  <div className="mt-5 flex items-center gap-2">
-                    <span className="font-semibold text-green-900 text-lg" style={{ color: verde }}>
-                      Média:
-                    </span>
-                    <span
-                      className="rounded-full px-4 py-1 font-bold text-lg shadow"
-                      style={{
-                        background: "#fff",
-                        color: "#173921",
-                        border: `2px solid ${corDaNota(
-                          Math.round(
-                            r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
-                            r.respostas.length
-                          )
-                        )}`,
-                        minWidth: 56,
-                        textAlign: "center",
-                      }}
-                      title="Média das notas"
-                    >
-                      {(
-                        r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
-                        r.respostas.length
-                      ).toFixed(2)}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           ))
-        ) : !buscando ? (
-          <div className="text-gray-400 text-center">Nenhum checklist encontrado nesse período.</div>
-        ) : null}
+        ) : (
+          <div className="text-gray-400 text-center">Nenhum entregável encontrado nesse período.</div>
+        )}
       </main>
     </div>
   );

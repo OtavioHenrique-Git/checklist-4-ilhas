@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 const verde = "#173921";
 const amarelo = "#D4B233";
-const cinzaClaro = "#F3F4F6";
 
 const perguntas = [
   "Limpeza e organização do Pátio",
@@ -40,8 +40,8 @@ export default function ChecklistPage() {
   const [token, setToken] = useState("");
   const [timer, setTimer] = useState(30);
   const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
 
-  // Busca usuário logado do Firebase Auth
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -63,14 +63,12 @@ export default function ChecklistPage() {
     setRespostas(novo);
   }
 
-  // Salva o checklist no Firestore
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setToken(gerarToken());
     setEnviado(true);
     setTimer(30);
 
-    // Salva no banco
     try {
       await addDoc(collection(db, "checklists"), {
         email: user?.email || "desconhecido",
@@ -82,19 +80,22 @@ export default function ChecklistPage() {
       alert("Erro ao salvar checklist!");
     }
 
-    // Inicia o countdown para redirecionar ao login depois de 30 segundos
     const countdown = setInterval(() => {
       setTimer((prev) => {
         if (prev === 1) {
           clearInterval(countdown);
           setEnviado(false);
           setToken("");
-          // Redireciona para o login ao acabar o tempo
           window.location.href = "/login";
         }
         return prev - 1;
       });
     }, 1000);
+  }
+
+  // Botão entregáveis
+  function handleAcessarEntregaveis() {
+    router.push("/entregaveis");
   }
 
   // Tela do Token
@@ -133,43 +134,58 @@ export default function ChecklistPage() {
   return (
     <form
       className="min-h-screen w-full flex flex-col items-center"
-      style={{ background: "linear-gradient(120deg, #f7f9fa 0%, #eceff1 100%)" }}
+      style={{
+        background: "linear-gradient(120deg,#f7f9fa 0%,#eceff1 100%)",
+        fontFamily: "'Poppins', Arial, sans-serif",
+      }}
       onSubmit={handleSubmit}
     >
-      {/* TOPO MELHORADO */}
-      <div className="flex flex-col items-center mt-8 mb-3 w-full">
-        <div
-          className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center mb-2"
-          style={{ boxShadow: "0 4px 32px 0 #17392120" }}
-        >
-          <img
-            src="/logo.jpeg"
-            alt="Logo 4 Ilhas"
-            className="w-20 h-20 object-contain rounded-xl mb-1"
-            style={{ border: `2.5px solid ${amarelo}` }}
-          />
-        </div>
+      {/* HEADER premium responsivo */}
+      <div
+        className="flex flex-col items-center w-full rounded-b-3xl shadow"
+        style={{
+          background: `linear-gradient(90deg, ${verde} 65%, ${amarelo} 100%)`,
+          boxShadow: "0 4px 30px #17392110",
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          marginBottom: 20,
+          paddingTop: 28,
+          paddingBottom: 24,
+          maxWidth: 700,
+          width: "100%",
+        }}
+      >
+        <img
+          src="/logo.jpeg"
+          alt="Logo 4 Ilhas"
+          className="w-20 h-20 object-contain rounded-xl mb-3 bg-white"
+          style={{ border: `2.5px solid ${amarelo}` }}
+        />
         <h1
           className="font-extrabold text-3xl text-center tracking-tight"
           style={{
-            color: verde,
-            letterSpacing: "-0.5px",
-            fontFamily: "'Segoe UI', 'Inter', Arial, sans-serif",
+            color: "#fff",
+            textShadow: "0 1px 8px #17392135, 0 1px 4px #D4B23344",
+            letterSpacing: "-1px",
           }}
         >
           Diário de Verificação
         </h1>
-        {/* E-mail do gerente logado */}
         {user?.email && (
           <span
-            className="mt-2 mb-2 px-4 py-2 rounded-xl text-base font-medium"
+            className="mt-3 px-5 py-2 rounded-xl text-base font-medium shadow"
             style={{
-              background: "#F7F8F8",
+              background: "#fffbe5",
               color: verde,
               border: `1.5px solid ${amarelo}`,
-              boxShadow: "0 2px 10px #1739210c",
+              boxShadow: "0 2px 10px #17392115",
               fontSize: "1.08rem",
               letterSpacing: "0.2px",
+              marginTop: 6,
+              marginBottom: -10,
+              maxWidth: "92vw",
+              textAlign: "center",
+              overflowWrap: "anywhere",
             }}
           >
             Usuário: {user.email}
@@ -177,47 +193,70 @@ export default function ChecklistPage() {
         )}
       </div>
 
-      <div className="w-full max-w-xl flex flex-col gap-8 mb-8 px-2">
+      {/* BOTÃO ENTREGÁVEIS - Centralizado e responsivo */}
+      <div className="w-full flex flex-row justify-center mb-4 px-2" style={{ maxWidth: 700 }}>
+        <button
+          type="button"
+          onClick={handleAcessarEntregaveis}
+          className="px-4 py-3 rounded-xl font-bold bg-yellow-200 border border-yellow-400 hover:bg-yellow-300 transition text-green-900 shadow"
+          style={{
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            minWidth: 220,
+            width: "100%",
+            maxWidth: 370,
+            boxShadow: "0 3px 16px #d4b23326",
+          }}
+        >
+          Preencher Entregáveis Semanais
+        </button>
+      </div>
+
+      {/* Cards responsivos, maxWidth no desktop */}
+      <div
+        className="w-full flex flex-col gap-8 mb-8 px-2"
+        style={{ maxWidth: 900, width: "100%" }}
+      >
         {perguntas.map((pergunta, i) => (
           <div
             key={i}
-            className="bg-white rounded-3xl shadow-xl px-6 py-5 flex flex-col border relative transition-all"
+            className="bg-white rounded-3xl shadow-xl px-4 py-5 flex flex-col border-2 transition-all mx-auto"
             style={{
-              borderColor: verde,
-              borderWidth: 1.5,
-              boxShadow:
-                "0 6px 32px #17392119, 0 1.5px 6px #d4b23310",
+              borderColor: amarelo,
+              borderWidth: 2,
+              boxShadow: "0 8px 34px #17392119, 0 1.5px 8px #d4b23313",
+              maxWidth: 720,
+              width: "100%",
             }}
           >
             <span
               className="font-semibold text-base mb-3"
               style={{
                 color: verde,
-                fontSize: "1.08rem",
+                fontSize: "1.09rem",
                 letterSpacing: "-0.5px",
               }}
             >
               {pergunta}
             </span>
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-2 mb-3 flex-wrap">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => handleChange(i, "nota", n)}
-                  className={`w-10 h-10 rounded-full font-bold border flex items-center justify-center shadow-md transition-all
+                  className={`w-11 h-11 rounded-full font-bold border flex items-center justify-center shadow-md transition-all
                     ${
                       respostas[i].nota === n
                         ? "scale-110 ring-2 ring-yellow-400"
                         : "opacity-80 hover:scale-105 hover:shadow-lg"
                     }`}
                   style={{
-                    background:
-                      respostas[i].nota === n ? amarelo : "#fcfcfc",
+                    background: respostas[i].nota === n ? amarelo : "#fcfcfc",
                     color: respostas[i].nota === n ? verde : "#b3b3b3",
                     borderColor: amarelo,
                     borderWidth: 2,
-                    fontSize: "1.15rem",
+                    fontSize: "1.13rem",
                   }}
                 >
                   {n}
@@ -225,12 +264,14 @@ export default function ChecklistPage() {
               ))}
             </div>
             <textarea
-              className="border p-2 rounded-xl resize-none text-sm transition-all focus:shadow-md"
+              className="border-2 p-3 rounded-xl resize-none text-base transition-all focus:shadow-md"
               style={{
                 borderColor: verde,
-                background: "#fafafa",
-                fontFamily: "'Segoe UI', 'Inter', Arial, sans-serif",
+                background: "#f8faf6",
                 color: verde,
+                fontFamily: "'Poppins', Arial, sans-serif",
+                minHeight: 44,
+                maxWidth: "100%",
               }}
               rows={2}
               placeholder="Observações (opcional)..."
@@ -241,20 +282,22 @@ export default function ChecklistPage() {
         ))}
       </div>
 
+      {/* Botão responsivo */}
       <button
         type="submit"
-        className="w-full max-w-xl"
+        className="w-full"
         style={{
           background: `linear-gradient(90deg, ${verde} 70%, ${amarelo} 100%)`,
           color: "#fff",
           fontWeight: "bold",
-          fontSize: "1.25rem",
+          fontSize: "1.15rem",
           padding: "1rem",
           borderRadius: "1.3rem",
-          boxShadow: "0 6px 28px #17392118",
+          boxShadow: "0 7px 30px #17392115",
           letterSpacing: "0.02em",
           marginBottom: "2.5rem",
           border: "none",
+          maxWidth: 420,
         }}
       >
         Enviar checklist
