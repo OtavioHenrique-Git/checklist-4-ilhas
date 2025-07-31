@@ -37,7 +37,7 @@ export default function EntregaveisPage() {
 
   // Só libera nas segundas
   const hoje = new Date();
-  const isSegunda = true;
+  const isSegunda = hoje.getDay() === 1;
  
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
