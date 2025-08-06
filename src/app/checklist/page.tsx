@@ -97,6 +97,10 @@ export default function ChecklistPage() {
   function handleAcessarEntregaveis() {
     router.push("/entregaveis");
   }
+  // Botão de quebras
+  function handleAcessarQuebras() {
+    router.push("/quebras");
+  }
 
   // Tela do Token
   if (enviado) {
@@ -194,7 +198,7 @@ export default function ChecklistPage() {
       </div>
 
       {/* BOTÃO ENTREGÁVEIS - Centralizado e responsivo */}
-      <div className="w-full flex flex-row justify-center mb-4 px-2" style={{ maxWidth: 700 }}>
+      <div className="w-full flex flex-row justify-center mb-2 px-2" style={{ maxWidth: 700 }}>
         <button
           type="button"
           onClick={handleAcessarEntregaveis}
@@ -209,6 +213,24 @@ export default function ChecklistPage() {
           }}
         >
           Preencher Entregáveis Semanais
+        </button>
+      </div>
+      {/* BOTÃO QUEBRAS - Centralizado e responsivo */}
+      <div className="w-full flex flex-row justify-center mb-4 px-2" style={{ maxWidth: 700 }}>
+        <button
+          type="button"
+          onClick={handleAcessarQuebras}
+          className="px-4 py-3 rounded-xl font-bold bg-yellow-100 border border-yellow-500 hover:bg-yellow-200 transition text-green-900 shadow"
+          style={{
+            fontWeight: 700,
+            fontSize: "1.1rem",
+            minWidth: 220,
+            width: "100%",
+            maxWidth: 370,
+            boxShadow: "0 3px 16px #d4b23326",
+          }}
+        >
+          Lançar Quebras de Pães
         </button>
       </div>
 

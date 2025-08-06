@@ -227,7 +227,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      {/* Botões */}
+      {/* Botões principais */}
       <div className="w-full max-w-2xl flex flex-col md:flex-row gap-3 mb-3">
         <button
           className={`flex-1 ${aba === "relatorios" ? "ring-2 ring-green-600" : ""}`}
@@ -282,6 +282,27 @@ export default function AdminPage() {
           Buscar Entregáveis
         </button>
       </div>
+
+      {/* NOVO BOTÃO: VER RELATÓRIO DE QUEBRAS */}
+      <div className="w-full max-w-2xl flex flex-col gap-2 mb-4">
+        <button
+          style={{
+            background: "#fffbe5",
+            color: verde,
+            fontWeight: "bold",
+            fontSize: "1.13rem",
+            padding: "1rem",
+            borderRadius: "1rem",
+            boxShadow: "0 2.5px 14px #d4b23319",
+            border: "1.8px solid #D4B233",
+          }}
+          onClick={() => router.push("/admin/quebras")}
+          type="button"
+        >
+          Ver Relatório de Quebras
+        </button>
+      </div>
+
       <button
         className="text-sm text-gray-400 hover:underline mb-8"
         type="button"
@@ -343,8 +364,8 @@ export default function AdminPage() {
                             {resp.nota <= 2
                               ? "Nota baixa"
                               : resp.nota === 3
-                              ? "Nota regular"
-                              : "Nota boa"}
+                                ? "Nota regular"
+                                : "Nota boa"}
                           </span>
                         </div>
                         {resp.observacao && resp.observacao.trim() && (
@@ -368,7 +389,7 @@ export default function AdminPage() {
                           border: `2px solid ${corDaNota(
                             Math.round(
                               r.respostas.reduce((acc: any, curr: any) => acc + Number(curr.nota || 0), 0) /
-                                r.respostas.length
+                              r.respostas.length
                             )
                           )}`,
                           minWidth: 56,
