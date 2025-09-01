@@ -5,6 +5,7 @@ import { auth, db } from "../lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import { isMonitoramentoEmail } from "../lib/roles"; // ⬅️ NOVO
 
 const verde = "#173921";
 const amarelo = "#D4B233";
@@ -31,10 +32,7 @@ type RespostaItem = {
 
 export default function ChecklistPage() {
   const [respostas, setRespostas] = useState<RespostaItem[]>(
-    perguntas.map(() => ({
-      nota: 3,
-      observacao: "",
-    }))
+    perguntas.map(() => ({ nota: 3, observacao: "" }))
   );
   const [enviado, setEnviado] = useState(false);
   const [token, setToken] = useState("");
@@ -53,11 +51,7 @@ export default function ChecklistPage() {
     return Math.floor(100 + Math.random() * 900).toString();
   }
 
-  function handleChange(
-    index: number,
-    field: keyof RespostaItem,
-    value: number | string
-  ) {
+  function handleChange(index: number, field: keyof RespostaItem, value: number | string) {
     const novo = [...respostas];
     (novo[index][field] as typeof value) = value;
     setRespostas(novo);
@@ -74,9 +68,9 @@ export default function ChecklistPage() {
         email: user?.email || "desconhecido",
         uid: user?.uid || null,
         respostas,
-        criadoEm: serverTimestamp()
+        criadoEm: serverTimestamp(),
       });
-    } catch (err) {
+    } catch {
       alert("Erro ao salvar checklist!");
     }
 
@@ -93,42 +87,33 @@ export default function ChecklistPage() {
     }, 1000);
   }
 
-  // Botão entregáveis
+  // Botões de atalho
   function handleAcessarEntregaveis() {
     router.push("/entregaveis");
   }
-  // Botão de quebras
   function handleAcessarQuebras() {
     router.push("/quebras");
+  }
+  function handleAcessarMonitoramento() {
+    router.push("/monitoramento");
   }
 
   // Tela do Token
   if (enviado) {
     return (
-      <div
-        style={{ background: verde }}
-        className="min-h-screen flex flex-col justify-center items-center"
-      >
+      <div style={{ background: verde }} className="min-h-screen flex flex-col justify-center items-center">
         <div className="bg-white text-center rounded-2xl shadow-xl p-10 flex flex-col items-center max-w-xs w-full">
           <img src="/logo.jpeg" alt="Logo" className="w-20 mb-2 rounded-xl" />
-          <span
-            className="text-lg font-semibold mb-2"
-            style={{ color: verde }}
-          >
+          <span className="text-lg font-semibold mb-2" style={{ color: verde }}>
             Token Gerado
           </span>
-          <span
-            className="text-5xl font-mono font-extrabold mb-2 tracking-widest"
-            style={{ color: amarelo }}
-          >
+          <span className="text-5xl font-mono font-extrabold mb-2 tracking-widest" style={{ color: amarelo }}>
             {token}
           </span>
           <span className="text-base mb-1" style={{ color: verde }}>
             Válido por <b>{timer}</b> segundos
           </span>
-          <span className="text-xs text-gray-500">
-            (Use para liberar o computador)
-          </span>
+          <span className="text-xs text-gray-500">(Use para liberar o computador)</span>
         </div>
       </div>
     );
@@ -144,7 +129,7 @@ export default function ChecklistPage() {
       }}
       onSubmit={handleSubmit}
     >
-      {/* HEADER premium responsivo */}
+      {/* HEADER */}
       <div
         className="flex flex-col items-center w-full rounded-b-3xl shadow"
         style={{
@@ -197,7 +182,7 @@ export default function ChecklistPage() {
         )}
       </div>
 
-      {/* BOTÃO ENTREGÁVEIS - Centralizado e responsivo */}
+      {/* BOTÕES RÁPIDOS */}
       <div className="w-full flex flex-row justify-center mb-2 px-2" style={{ maxWidth: 700 }}>
         <button
           type="button"
@@ -215,8 +200,8 @@ export default function ChecklistPage() {
           Preencher Entregáveis Semanais
         </button>
       </div>
-      {/* BOTÃO QUEBRAS - Centralizado e responsivo */}
-      <div className="w-full flex flex-row justify-center mb-4 px-2" style={{ maxWidth: 700 }}>
+
+      <div className="w-full flex flex-row justify-center mb-2 px-2" style={{ maxWidth: 700 }}>
         <button
           type="button"
           onClick={handleAcessarQuebras}
@@ -234,11 +219,29 @@ export default function ChecklistPage() {
         </button>
       </div>
 
-      {/* Cards responsivos, maxWidth no desktop */}
-      <div
-        className="w-full flex flex-col gap-8 mb-8 px-2"
-        style={{ maxWidth: 900, width: "100%" }}
-      >
+      {/* MONITORAMENTO — aparece só para quem está em monitoramentoEmails */}
+      {isMonitoramentoEmail(user?.email) && (
+        <div className="w-full flex flex-row justify-center mb-4 px-2" style={{ maxWidth: 700 }}>
+          <button
+            type="button"
+            onClick={handleAcessarMonitoramento}
+            className="px-4 py-3 rounded-xl font-bold bg-yellow-200 border border-yellow-500 hover:bg-yellow-300 transition text-green-900 shadow"
+            style={{
+              fontWeight: 700,
+              fontSize: "1.1rem",
+              minWidth: 220,
+              width: "100%",
+              maxWidth: 370,
+              boxShadow: "0 3px 16px #d4b23326",
+            }}
+          >
+            Preencher Monitoramento
+          </button>
+        </div>
+      )}
+
+      {/* CARDS */}
+      <div className="w-full flex flex-col gap-8 mb-8 px-2" style={{ maxWidth: 900, width: "100%" }}>
         {perguntas.map((pergunta, i) => (
           <div
             key={i}
@@ -251,14 +254,7 @@ export default function ChecklistPage() {
               width: "100%",
             }}
           >
-            <span
-              className="font-semibold text-base mb-3"
-              style={{
-                color: verde,
-                fontSize: "1.09rem",
-                letterSpacing: "-0.5px",
-              }}
-            >
+            <span className="font-semibold text-base mb-3" style={{ color: verde, fontSize: "1.09rem", letterSpacing: "-0.5px" }}>
               {pergunta}
             </span>
             <div className="flex gap-2 mb-3 flex-wrap">
@@ -268,11 +264,7 @@ export default function ChecklistPage() {
                   type="button"
                   onClick={() => handleChange(i, "nota", n)}
                   className={`w-11 h-11 rounded-full font-bold border flex items-center justify-center shadow-md transition-all
-                    ${
-                      respostas[i].nota === n
-                        ? "scale-110 ring-2 ring-yellow-400"
-                        : "opacity-80 hover:scale-105 hover:shadow-lg"
-                    }`}
+                    ${respostas[i].nota === n ? "scale-110 ring-2 ring-yellow-400" : "opacity-80 hover:scale-105 hover:shadow-lg"}`}
                   style={{
                     background: respostas[i].nota === n ? amarelo : "#fcfcfc",
                     color: respostas[i].nota === n ? verde : "#b3b3b3",
@@ -298,13 +290,13 @@ export default function ChecklistPage() {
               rows={2}
               placeholder="Observações (opcional)..."
               value={respostas[i].observacao}
-              onChange={e => handleChange(i, "observacao", e.target.value)}
+              onChange={(e) => handleChange(i, "observacao", e.target.value)}
             />
           </div>
         ))}
       </div>
 
-      {/* Botão responsivo */}
+      {/* Enviar */}
       <button
         type="submit"
         className="w-full"

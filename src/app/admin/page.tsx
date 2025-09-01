@@ -1,3 +1,4 @@
+// src/app/admin/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -114,7 +115,7 @@ export default function AdminPage() {
       q = query(q, orderBy("criadoEm", "desc"));
     }
     const snap = await getDocs(q);
-    setResultados(snap.docs.map(d => d.data()));
+    setResultados(snap.docs.map((d) => d.data()));
     setBuscando(false);
   }
 
@@ -138,7 +139,7 @@ export default function AdminPage() {
       q = query(q, orderBy("criadoEm", "desc"));
     }
     const snap = await getDocs(q);
-    setResultadosEntregaveis(snap.docs.map(d => d.data()));
+    setResultadosEntregaveis(snap.docs.map((d) => d.data()));
     setBuscandoEntregaveis(false);
   }
 
@@ -153,9 +154,7 @@ export default function AdminPage() {
   return (
     <div
       className="min-h-screen bg-[#f7f9fa] flex flex-col items-center px-2 py-6 w-full"
-      style={{
-        fontFamily: "'Poppins', 'Segoe UI', 'Inter', Arial, sans-serif",
-      }}
+      style={{ fontFamily: "'Poppins', 'Segoe UI', 'Inter', Arial, sans-serif" }}
     >
       {/* Header */}
       <header className="w-full max-w-2xl flex flex-col items-center mb-5">
@@ -182,11 +181,7 @@ export default function AdminPage() {
         </h1>
         <span
           className="text-base text-gray-500 font-medium mb-2"
-          style={{
-            wordBreak: "break-all",
-            fontFamily: "'Poppins', Arial, sans-serif",
-            opacity: 0.92,
-          }}
+          style={{ wordBreak: "break-all", fontFamily: "'Poppins', Arial, sans-serif", opacity: 0.92 }}
         >
           {userEmail}
         </span>
@@ -200,7 +195,7 @@ export default function AdminPage() {
             type="date"
             className="border p-2 rounded-lg text-base"
             value={dataInicio}
-            onChange={e => setDataInicio(e.target.value)}
+            onChange={(e) => setDataInicio(e.target.value)}
             style={{ borderColor: amarelo, background: "#fcfcfc" }}
           />
         </div>
@@ -210,7 +205,7 @@ export default function AdminPage() {
             type="date"
             className="border p-2 rounded-lg text-base"
             value={dataFim}
-            onChange={e => setDataFim(e.target.value)}
+            onChange={(e) => setDataFim(e.target.value)}
             style={{ borderColor: amarelo, background: "#fcfcfc" }}
           />
         </div>
@@ -221,7 +216,7 @@ export default function AdminPage() {
             placeholder="exemplo@email.com"
             className="border p-2 rounded-lg text-base"
             value={filtroEmail}
-            onChange={e => setFiltroEmail(e.target.value)}
+            onChange={(e) => setFiltroEmail(e.target.value)}
             style={{ borderColor: amarelo, background: "#fcfcfc" }}
           />
         </div>
@@ -283,8 +278,9 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* NOVO BOTÃO: VER RELATÓRIO DE QUEBRAS */}
+      {/* Relatórios extras */}
       <div className="w-full max-w-2xl flex flex-col gap-2 mb-4">
+        {/* Quebras */}
         <button
           style={{
             background: "#fffbe5",
@@ -300,6 +296,23 @@ export default function AdminPage() {
           type="button"
         >
           Ver Relatório de Quebras
+        </button>
+
+        {/* MONITORAMENTO — NOVO BOTÃO */}
+        <button
+          style={{
+            background: verde,
+            color: "#fff",
+            fontWeight: "bold",
+            fontSize: "1.13rem",
+            padding: "1rem",
+            borderRadius: "1rem",
+            boxShadow: "0 2.5px 14px #17392118",
+          }}
+          onClick={() => router.push("/admin/monitoramento")}
+          type="button"
+        >
+          Ver Monitoramento
         </button>
       </div>
 
@@ -339,10 +352,7 @@ export default function AdminPage() {
                   <span className="font-bold text-green-900 text-base">Respostas:</span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                     {r.respostas && r.respostas.map?.((resp: any, i: number) => (
-                      <div
-                        key={i}
-                        className="bg-white rounded-lg border border-green-50 shadow-sm p-3 flex flex-col w-full"
-                      >
+                      <div key={i} className="bg-white rounded-lg border border-green-50 shadow-sm p-3 flex flex-col w-full">
                         <span className="font-bold text-green-900 mb-1">{i + 1}. {perguntas[i]}</span>
                         <div className="flex items-center gap-2 mt-1">
                           <span
@@ -361,11 +371,7 @@ export default function AdminPage() {
                             {resp.nota}
                           </span>
                           <span className="font-medium text-gray-700 text-sm">
-                            {resp.nota <= 2
-                              ? "Nota baixa"
-                              : resp.nota === 3
-                                ? "Nota regular"
-                                : "Nota boa"}
+                            {resp.nota <= 2 ? "Nota baixa" : resp.nota === 3 ? "Nota regular" : "Nota boa"}
                           </span>
                         </div>
                         {resp.observacao && resp.observacao.trim() && (
@@ -378,9 +384,7 @@ export default function AdminPage() {
                   </div>
                   {r.respostas && r.respostas.length > 0 && (
                     <div className="mt-5 flex items-center gap-2">
-                      <span className="font-semibold text-green-900 text-lg" style={{ color: verde }}>
-                        Média:
-                      </span>
+                      <span className="font-semibold text-green-900 text-lg" style={{ color: verde }}>Média:</span>
                       <span
                         className="rounded-full px-4 py-1 font-bold text-lg shadow"
                         style={{
@@ -434,10 +438,7 @@ export default function AdminPage() {
                 <span className="font-bold text-yellow-900 text-base">Entregáveis:</span>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                   {camposEntregaveis.map((campo, i) => (
-                    <div
-                      key={i}
-                      className="bg-white rounded-lg border border-yellow-100 shadow-sm p-3 flex flex-col w-full"
-                    >
+                    <div key={i} className="bg-white rounded-lg border border-yellow-100 shadow-sm p-3 flex flex-col w-full">
                       <span className="font-bold text-yellow-800 mb-1">{campo}</span>
                       <span className="text-sm text-gray-700">
                         {String(r.respostas?.[campo] ?? "-")}
