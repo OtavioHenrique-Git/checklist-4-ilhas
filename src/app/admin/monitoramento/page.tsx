@@ -61,7 +61,7 @@ export default function AdminMonitoramentoPage() {
 
   const [inicio, setInicio] = useState<string>("");
   const [fim, setFim] = useState<string>("");
-  const [emailFiltro, setEmailFiltro] = useState<string>("");
+  const [unidadeFiltro, setUnidadeFiltro] = useState<string>("");
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -100,16 +100,19 @@ export default function AdminMonitoramentoPage() {
     load();
   }, []);
 
+  // Unidades únicas para o <select>
+  const unidades = useMemo(() => {
+    return Array.from(new Set(rows.map((r) => r.unidade).filter(Boolean))).sort();
+  }, [rows]);
+
   const filtrados = useMemo(() => {
     return rows.filter((r) => {
-      if (emailFiltro && r.userEmail && !r.userEmail.toLowerCase().includes(emailFiltro.toLowerCase())) {
-        return false;
-      }
+      if (unidadeFiltro && r.unidade !== unidadeFiltro) return false;
       if (inicio && r.data < inicio) return false;
       if (fim && r.data > fim) return false;
       return true;
     });
-  }, [rows, inicio, fim, emailFiltro]);
+  }, [rows, inicio, fim, unidadeFiltro]);
 
   const kpis = useMemo(() => {
     const total = filtrados.length;
@@ -121,7 +124,7 @@ export default function AdminMonitoramentoPage() {
   function limparFiltros() {
     setInicio("");
     setFim("");
-    setEmailFiltro("");
+    setUnidadeFiltro("");
   }
 
   function exportCSV() {
@@ -203,21 +206,39 @@ export default function AdminMonitoramentoPage() {
           <div className="grid md:grid-cols-6 gap-3">
             <div className="flex flex-col">
               <label className="font-semibold mb-1">Início</label>
-              <input type="date" className="border rounded-lg px-3 py-2" value={inicio} onChange={(e) => setInicio(e.target.value)} />
+              <input
+                type="date"
+                className="border rounded-lg px-3 py-2"
+                value={inicio}
+                onChange={(e) => setInicio(e.target.value)}
+              />
             </div>
             <div className="flex flex-col">
               <label className="font-semibold mb-1">Fim</label>
-              <input type="date" className="border rounded-lg px-3 py-2" value={fim} onChange={(e) => setFim(e.target.value)} />
-            </div>
-            <div className="flex flex-col md:col-span-2">
-              <label className="font-semibold mb-1">E-mail (opcional)</label>
               <input
+                type="date"
                 className="border rounded-lg px-3 py-2"
-                placeholder="exemplo@email.com"
-                value={emailFiltro}
-                onChange={(e) => setEmailFiltro(e.target.value)}
+                value={fim}
+                onChange={(e) => setFim(e.target.value)}
               />
             </div>
+
+            <div className="flex flex-col md:col-span-2">
+              <label className="font-semibold mb-1">Unidade (opcional)</label>
+              <select
+                className="border rounded-lg px-3 py-2"
+                value={unidadeFiltro}
+                onChange={(e) => setUnidadeFiltro(e.target.value)}
+              >
+                <option value="">Todas as unidades</option>
+                {unidades.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-end gap-3 md:col-span-2">
               <button
                 onClick={exportCSV}
